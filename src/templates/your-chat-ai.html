@@ -5,7 +5,7 @@
     <style>
       * {
         box-sizing: border-box;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
 
       body {
@@ -30,9 +30,11 @@
         flex: 1;
         padding: 16px;
         gap: 16px;
+        height: 0;
       }
 
       .panel {
+        min-height: 0;
         background: white;
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -133,63 +135,65 @@
     </style>
   </head>
   <body>
-    <div class="header">Your Chat AI</div>
-    <div class="container">
-      <div class="panel left">
+    <div class='header'>Your Chat AI</div>
+    <div class='container'>
+      <div class='panel left'>
         <h3>Context Data</h3>
-        <textarea id="context" placeholder="Paste your source data here..."></textarea>
-        <button onclick="generateDB()">Generate Knowledge Base</button>
-        <div id="status"></div>
+        <textarea id='context' placeholder='Paste your source data here...'></textarea>
+        <button onclick='generateDB()'>Generate Knowledge Base</button>
+        <div id='status'></div>
       </div>
-      <div class="panel right">
+      <div class='panel right'>
         <h3>Chat</h3>
-        <div class="chat-window" id="chat"></div>
-          <div class="chat-input">
-            <input type="text" id="message" placeholder="Ask something..." />
-            <button onclick="sendMessage()">Send</button>
+        <div class='chat-window' id='chat'></div>
+          <div class='chat-input'>
+            <input type='text' id='message' placeholder='Ask something...' />
+            <button onclick='sendMessage()'>Send</button>
           </div>
       </div>
     </div>
     <script>
       function addMessage(text, sender) {
-        const chat = document.getElementById("chat");
-        const msg = document.createElement("div");
-        msg.classList.add("chat-message", sender);
+        const chat = document.getElementById('chat');
+        const msg = document.createElement('div');
+        msg.classList.add('chat-message', sender);
         msg.innerText = text;
         chat.appendChild(msg);
         chat.scrollTop = chat.scrollHeight;
       }
 
       function generateDB() {
-        const context = document.getElementById("context").value;
-        fetch("/generate", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({context: context})
+        document.getElementById('status').innerText = 'Generating context database, this make take a while...'
+        document.getElementById('chat').innerHTML = '';
+        const context = document.getElementById('context').value;
+        fetch('/generate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({context: context})
         })
         .then(res => res.json())
         .then(data => {
-            document.getElementById("status").innerText = data.status;
+          document.getElementById('status').innerText = data.status;
         });
       }
 
       function sendMessage() {
-        const input = document.getElementById("message");
+        const input = document.getElementById('message');
         const text = input.value.trim();
         if (!text) return;
-        addMessage(text, "user");
-        input.value = "";
-        fetch("/chat", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({message: text})
+        addMessage(text, 'user');
+        input.value = '';
+        fetch('/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({message: text})
         })
         .then(res => res.json())
-        .then(data => { addMessage(data.reply, "bot"); });
+        .then(data => { addMessage(data.reply, 'bot'); });
       }
 
-      document.getElementById("message").addEventListener("keypress", function(e) {
-        if (e.key === "Enter") { sendMessage(); }
+      document.getElementById('message').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') { sendMessage(); }
       });
     </script>
   </body>

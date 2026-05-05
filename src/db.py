@@ -4,6 +4,7 @@ from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
 from langchain_ollama.llms import OllamaLLM
 from langchain_chroma import Chroma
+import uuid
 import os
 
 # Generate context DB
@@ -22,13 +23,9 @@ def create_context_db(data):
     documents.append(document)
     ids.append(str(i))
   
-  db_path = './context_db'
-  try: os.system('rm -r context_db')
-  except: pass
-  
   vector_store = Chroma(
-    collection_name='context_db',
-    persist_directory=db_path,
+    collection_name=f'context_db_{uuid.uuid4()}',
+    persist_directory=f'context_db_{uuid.uuid4()}',
     embedding_function=embeddings
   )
   
