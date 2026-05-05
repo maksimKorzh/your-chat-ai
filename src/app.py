@@ -25,6 +25,7 @@ def generate():
 def chat():
   data = request.json
   message = data.get('message', '')
+  if db.retriever is None: return jsonify({'reply': 'Generate Knowledge Base first'})
   reply = f'{db.generate_response(message)}'
   return jsonify({'reply': reply})
 
