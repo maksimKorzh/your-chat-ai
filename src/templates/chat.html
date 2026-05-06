@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Your Chat AI</title>
+    <title>AI Realtor</title>
     <style>
       * {
         box-sizing: border-box;
@@ -35,6 +35,9 @@
 
       .panel {
         min-height: 0;
+        width: 60%;
+        margin-left: auto;
+        margin-right: auto;
         background: white;
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -42,9 +45,6 @@
         display: flex;
         flex-direction: column;
       }
-
-      .left { width: 50%; }
-      .right { width: 50%; }
 
       h3 {
         margin-top: 0;
@@ -135,15 +135,9 @@
     </style>
   </head>
   <body>
-    <div class='header'>Your Chat AI</div>
+    <div class='header'>AI Realtor</div>
     <div class='container'>
-      <div class='panel left'>
-        <h3>Context Data</h3>
-        <textarea id='context' placeholder='Paste your source data here...'></textarea>
-        <button onclick='generateDB()'>Generate Knowledge Base</button>
-        <div id='status'></div>
-      </div>
-      <div class='panel right'>
+      <div class='panel'>
         <h3>Chat</h3>
         <div class='chat-window' id='chat'></div>
           <div class='chat-input'>
@@ -160,36 +154,35 @@
         msg.innerText = text;
         chat.appendChild(msg);
         chat.scrollTop = chat.scrollHeight;
-      }
-
-      function generateDB() {
-        document.getElementById('status').innerText = 'Generating context database, this make take a while...'
-        document.getElementById('chat').innerHTML = '';
-        const context = document.getElementById('context').value;
-        fetch('/generate', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({context: context})
-        })
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById('status').innerText = data.status;
-        });
+        return msg;
       }
 
       function sendMessage() {
         const input = document.getElementById('message');
         const text = input.value.trim();
         if (!text) return;
+      
         addMessage(text, 'user');
         input.value = '';
+      
         fetch('/chat', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({message: text})
         })
-        .then(res => res.json())
-        .then(data => { addMessage(data.reply, 'bot'); });
+        .then(response => {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let botMessage = addMessage('', 'bot');
+          function read() {
+            reader.read().then(({ done, value }) => {
+              if (done) return;
+              const chunk = decoder.decode(value, { stream: true });
+              botMessage.textContent += chunk;
+              read();
+            });
+          } read();
+        });
       }
 
       document.getElementById('message').addEventListener('keypress', function(e) {
